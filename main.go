@@ -14,7 +14,7 @@ func main() {
 	http.HandleFunc("/upload", api.UploadFileHandler)
 	http.HandleFunc("/images", api.GetFilesHandler)
 	http.HandleFunc("/images/", api.GetFileByIDHandler)
-	http.HandleFunc("/download", api.DownloadFileHandler)
+	http.HandleFunc("/download/", api.DownloadFileHandler)
 
 	fmt.Println("Starting HTTP server on :8080")
 	err := http.ListenAndServe(":8080", nil)

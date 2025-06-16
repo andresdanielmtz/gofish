@@ -79,7 +79,7 @@ func GetFilesHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, file := range files {
 		if !file.IsDir() {
-			link := fmt.Sprintf(`<a href="/images/%s">%s</a><br>`, file.Name(), file.Name())
+			link := fmt.Sprintf(`<a href="/images/%s">%s</a> <a href="/download/%s">download </a><br>`, file.Name(), file.Name(), file.Name())
 			_, err := w.Write([]byte(link))
 			if err != nil {
 				return
@@ -123,12 +123,12 @@ func GetFileByIDHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DownloadFileHandler(w http.ResponseWriter, r *http.Request) {
-	nameFile := r.URL.Query().Get("name")
+	nameFile := r.URL.Path[len("/download/"):]
+
 	if nameFile == "" {
 		http.Error(w, "File name is required", http.StatusBadRequest)
 		return
 	}
-
 	filePath, err := getFileById(nameFile)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
