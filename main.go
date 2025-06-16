@@ -3,27 +3,16 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
+	"gofish/api"
 	"net/http"
 	"os"
 )
 
-func getRoot(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Got / request")
-	_, err := io.WriteString(w, "This is my website!\n")
-	if err != nil {
-		return
-	}
-}
-
-func getHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /hello request\n")
-	io.WriteString(w, "Hello, HTTP!\n")
-}
 func main() {
-	http.HandleFunc("/", getRoot)
-	http.HandleFunc("/hello", getHello)
-
+	http.HandleFunc("/", api.GetRoot)
+	http.HandleFunc("/hello", api.GetHello)
+	http.HandleFunc("/upload", api.UploadFileHandler)
+	fmt.Println("Starting HTTP server on :8080")
 	err := http.ListenAndServe(":8080", nil)
 	if errors.Is(err, http.ErrServerClosed) {
 		fmt.Println("HTTP server closed")
