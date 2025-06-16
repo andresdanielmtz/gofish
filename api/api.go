@@ -42,7 +42,11 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	defer tempFile.Close()
+	defer func(tempFile *os.File) {
+		err := tempFile.Close()
+		if err != nil {
+		}
+	}(tempFile)
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
@@ -68,7 +72,10 @@ func GetFilesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(`<a href="/">Home</a><br>`))
+	_, err = w.Write([]byte(`<a href="/">Home</a><br>`))
+	if err != nil {
+		return
+	}
 
 	for _, file := range files {
 		if !file.IsDir() {
@@ -101,7 +108,12 @@ func GetFileByIDHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not open file", http.StatusInternalServerError)
 		return
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
 	w.Header().Set("Content-Type", "image/png")
 	_, err = io.Copy(w, file)
 	if err != nil {
@@ -128,7 +140,12 @@ func DownloadFileHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not open file", http.StatusInternalServerError)
 		return
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
 
 	w.Header().Set("Content-Disposition", "attachment; filename="+nameFile)
 	w.Header().Set("Content-Type", "application/octet-stream")
