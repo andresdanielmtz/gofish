@@ -1,7 +1,6 @@
 # Gofish
 
 Gofish is a simple HTTP server for uploading, listing, downloading, and serving images.  
-Heavily inspired by [Gofus](https://github.com/mqnr/gofus).
 
 ## Features
 
