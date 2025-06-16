@@ -7,14 +7,9 @@ import (
 	"os"
 )
 
-// Root handler for the web server.
-// These are mostly used for serving static files or HTML content.
-// /hello is used to test the server's response.
-
-// !! Serves main HTML file for the root path.
-
+// GetRoot is the main handler for the / route. It delivers the index.html from the static folder.
 func GetRoot(w http.ResponseWriter, r *http.Request) {
-	file, err := os.Open("static/index.html")
+	file, err := os.Open("static/index.html") // ? It seems file path always comes from the root instead from a relative directory. Sounds good (y)
 	if err != nil {
 		fmt.Println("Error opening index.html:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -33,6 +28,7 @@ func GetRoot(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetHello is a test route. Used only for server testing purposes.
 func GetHello(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got /hello request\n")
 	_, err := io.WriteString(w, "Hello, HTTP!\n")
