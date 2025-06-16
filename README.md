@@ -59,12 +59,13 @@ Visit `http://localhost:8080/` for a simple web interface (if enabled).
 
 ## API Endpoints
 
-| Method | Endpoint              | Description                |
-|--------|-----------------------|----------------------------|
-| POST   | `/upload`             | Upload an image            |
-| GET    | `/list`               | List all images            |
-| GET    | `/images/<filename>`  | Download/view an image     |
-| GET    | `/`                   | HTML frontend (optional)   |
+| Method | Endpoint               | Description              |
+|--------|------------------------|--------------------------|
+| POST   | `/upload`              | Upload an image          |
+| GET    | `/images`              | List all images          |
+| GET    | `/images/<filename>`   | View an image            |
+| GET    | `/download/<filename>` | Download an image        |
+| GET    | `/`                    | HTML frontend (optional) |
 
 ## Configuration
 
