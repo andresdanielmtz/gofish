@@ -3,27 +3,142 @@ package api
 import (
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 )
 
-// Serves main HTML file for the root path. (!!)
-func GetRoot(w http.ResponseWriter, r *http.Request) {
-	file, err := os.Open("static/index.html")
+func UploadFileHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Uploading file...!")
+
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		fmt.Println("Error opening index.html:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	} // 10 MB limit
+
+	file, handler, err := r.FormFile("myFile")
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
-	defer file.Close()
-	w.Header().Set("Content-Type", "text/html")
-	_, err = io.Copy(w, file)
+
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file) // defer means that this will be executed at the end of the function
+
+	// Before uploading, be sure to check the folder exists
+	err = os.MkdirAll("images", os.ModePerm)
 	if err != nil {
-		fmt.Println("Error writing response:", err)
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Printf("File Size: %+v bytes\n", handler.Size)
+	tempFile, err := os.CreateTemp("images", "upload-*.png")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer tempFile.Close()
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	_, err = tempFile.Write(fileBytes)
+	if err != nil {
+		return
+	}
+	_, err = fmt.Fprintf(w, "Uploaded: %s", tempFile.Name())
+	if err != nil {
+		return
 	}
 }
 
-func GetHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("got /hello request\n")
-	io.WriteString(w, "Hello, HTTP!\n")
+func GetFilesHandler(w http.ResponseWriter, r *http.Request) {
+	files, err := os.ReadDir("images")
+	if err != nil {
+		http.Error(w, "Could not read directory", http.StatusInternalServerError)
+		return
+	}
+
+	for _, file := range files {
+		if !file.IsDir() {
+			_, err := fmt.Fprintf(w, "%s\n", file.Name())
+			if err != nil {
+				return
+			}
+		}
+	}
+}
+
+func getFileById(nameFile string) (string, error) {
+	filePath := "images/" + nameFile
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return "", fmt.Errorf("file %s does not exist", nameFile)
+	}
+	return filePath, nil
+}
+
+func GetFileByIDHandler(w http.ResponseWriter, r *http.Request) {
+	nameFile := r.URL.Path[len("/images/"):]
+
+	if nameFile == "" {
+		http.Error(w, "File name is required", http.StatusBadRequest)
+		return
+	}
+
+	filePath, err := getFileById(nameFile)
+	fmt.Println("Serving file:", filePath, "Error:", err) // Debug print
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		http.Error(w, "Could not open file", http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+	w.Header().Set("Content-Type", "image/png")
+	_, err = io.Copy(w, file)
+	if err != nil {
+		http.Error(w, "Could not write file", http.StatusInternalServerError)
+		return
+	}
+}
+
+func DownloadFileHandler(w http.ResponseWriter, r *http.Request) {
+	nameFile := r.URL.Query().Get("name")
+	if nameFile == "" {
+		http.Error(w, "File name is required", http.StatusBadRequest)
+		return
+	}
+
+	filePath, err := getFileById(nameFile)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		http.Error(w, "Could not open file", http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+nameFile)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	_, err = io.Copy(w, file)
+	if err != nil {
+		http.Error(w, "Could not write file", http.StatusInternalServerError)
+		return
+	}
 }
