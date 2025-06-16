@@ -67,22 +67,18 @@ func GetFilesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "text/html")
+	w.Write([]byte(`<a href="/">Home</a><br>`))
+
 	for _, file := range files {
 		if !file.IsDir() {
-			_, err := fmt.Fprintf(w, "%s\n", file.Name())
+			link := fmt.Sprintf(`<a href="/images/%s">%s</a><br>`, file.Name(), file.Name())
+			_, err := w.Write([]byte(link))
 			if err != nil {
 				return
 			}
 		}
 	}
-}
-
-func getFileById(nameFile string) (string, error) {
-	filePath := "images/" + nameFile
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return "", fmt.Errorf("file %s does not exist", nameFile)
-	}
-	return filePath, nil
 }
 
 func GetFileByIDHandler(w http.ResponseWriter, r *http.Request) {

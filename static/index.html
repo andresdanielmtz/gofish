@@ -14,6 +14,7 @@
     <input type="file" name="myFile" />
     <input type="submit" value="upload" />
 </form>
+<a href = "http://localhost:8080/images"> See images. </a>
 
 <script>
     document.querySelector('form').addEventListener('submit', function (e) {
@@ -28,7 +29,27 @@
         .catch(error => console.error('Error:', error));
     });
 
-
+    // After uploading, redirect to the image URL which is /images/<filename>
+    document.querySelector('form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.text())
+        .then(data => {
+            const filename = data.match(/images\/(.+)/);
+            // should just be one
+            if (!filename) {
+                console.error('No filename found in response:', data);
+                return;
+            }
+            console.log(`File uploaded: ${filename ? filename[1] : 'unknown'}`);
+            window.location.href = `/${filename[0]}`;
+        })
+        .catch(error => console.error('Error:', error));
+    });
 </script>
 </body>
 </html>
